@@ -7,14 +7,18 @@ import { validateEmail } from "./helpers/validation";
 import ButtonPrimary from "./components/ButtonPrimary.vue";
 import InputCheckbox from "./components/InputCheckbox.vue";
 import StepsIndicator from "./components/StepsIndicator.vue";
+import { fetchGitHubData } from "./services/GitHubService";
+import SuccessView from "./views/SuccessView.vue";
 
-// import HelloWorld from '@/components/HelloWorld.vue'
 export default defineComponent({
   data() {
     return {
       currentStep: 0,
       submitted: false,
+      gitHubUserData: null,
       invalids: {} as any,
+      isLoading: false,
+      gitHubData: {},
       fields: {
         firstName: {
           label: "First name",
@@ -68,6 +72,7 @@ export default defineComponent({
           label: "Agree to Terms and Services",
           value: false,
           type: "checkbox",
+          private: true,
           validations: [
             {
               message: "Agreement is a required field",
@@ -115,7 +120,15 @@ export default defineComponent({
       this.validate();
       if (this.isInvalid) return;
       this.submitted = true;
+      this.fetchGitHubUserData();
       console.log("doing submit", this.fields);
+    },
+    fetchGitHubUserData() {
+      this.isLoading = true;
+      fetchGitHubData(this.fields.gitHub.value)
+        .then((res) => (this.gitHubData = res))
+        .catch((err) => console.log(err))
+        .finally(() => (this.isLoading = false));
     },
     validate() {
       this.invalids = {};
@@ -134,7 +147,13 @@ export default defineComponent({
       });
     },
   },
-  components: { InputText, ButtonPrimary, InputCheckbox, StepsIndicator },
+  components: {
+    InputText,
+    ButtonPrimary,
+    InputCheckbox,
+    StepsIndicator,
+    SuccessView,
+},
 });
 </script>
 
@@ -173,7 +192,6 @@ export default defineComponent({
                     :name="field"
                     v-model="fields[field].value"
                     :is-invalid="!!invalids[field]"
-                    :invalid-message="invalids[field]"
                     @validate="() => validateField(field)"
                   />
                 </div>
@@ -184,11 +202,14 @@ export default defineComponent({
       </div>
 
       <div v-else>
-        <h3>Hi {{ fields.firstName.value }}, thanks!</h3>
+        <div class="welcome-info">
+          <div v-if="isLoading"><h3>Loading...</h3></div>
+          <SuccessView v-else :fields="fields" :git-hub-data="gitHubData" />
+        </div>
       </div>
     </div>
 
-    <footer class="form-footer">
+    <footer v-if="!submitted" class="form-footer">
       <ButtonPrimary v-if="!isFirstStep" @on-click="previousStep" text="Back" />
       <ButtonPrimary
         v-if="!isLastStep"
@@ -199,21 +220,6 @@ export default defineComponent({
       <ButtonPrimary v-if="isLastStep" @on-click="submit" text="Submit" />
     </footer>
   </section>
-
-  <!-- <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header> -->
-
-  <!-- <RouterView /> -->
 </template>
 
 <style lang="scss">
