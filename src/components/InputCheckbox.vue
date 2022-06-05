@@ -5,9 +5,8 @@ export default defineComponent({
   props: {
     label: String,
     name: String,
-    modelValue: String,
+    modelValue: Boolean,
     isInvalid: Boolean,
-    invalidMessage: String,
   },
   emits: ["update:modelValue", "validate"],
   computed: {
@@ -25,13 +24,23 @@ export default defineComponent({
 </script>
 
 <template>
-  <label>
-    {{ label }}
-    <input type="text" :name="name" v-model="value" />
-  </label>
-  <div v-if="isInvalid">
-    {{ invalidMessage }}
+  <div class="checkbox-wrapper">
+    <label class="label" :class="{ error: isInvalid }">
+      <input type="checkbox" :name="name" v-model="value" />
+      {{ label }}
+    </label>
   </div>
 </template>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.checkbox-wrapper {
+  margin-bottom: 20px;
+}
+.label {
+  font-size: 20px;
+
+  &.error {
+    color: var(--red);
+  }
+}
+</style>

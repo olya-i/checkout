@@ -2,8 +2,11 @@
 // import { RouterLink, RouterView } from 'vue-router'
 
 import { defineComponent } from "vue";
-import TextInput from "./components/TextInput.vue";
+import InputText from "./components/InputText.vue";
 import { validateEmail } from "./helpers/validation";
+import ButtonPrimary from "./components/ButtonPrimary.vue";
+import InputCheckbox from "./components/InputCheckbox.vue";
+import StepsIndicator from "./components/StepsIndicator.vue";
 
 // import HelloWorld from '@/components/HelloWorld.vue'
 export default defineComponent({
@@ -14,8 +17,9 @@ export default defineComponent({
       invalids: {} as any,
       fields: {
         firstName: {
-          label: "firstName",
+          label: "First name",
           value: "",
+          type: "text",
           validations: [
             {
               message: "FirstName is a required field",
@@ -24,8 +28,9 @@ export default defineComponent({
           ],
         },
         lastName: {
-          label: "lastName",
+          label: "Last name",
           value: "",
+          type: "text",
           validations: [
             {
               message: "LastName is a required field",
@@ -34,8 +39,9 @@ export default defineComponent({
           ],
         },
         gitHub: {
-          label: "GitHub username ",
+          label: "GitHub username",
           value: "",
+          type: "text",
           validations: [
             {
               message: "GitHub is a required field",
@@ -44,8 +50,9 @@ export default defineComponent({
           ],
         },
         email: {
-          label: "email",
+          label: "Email",
           value: "",
+          type: "text",
           validations: [
             {
               message: "Email address not valid",
@@ -59,7 +66,8 @@ export default defineComponent({
         },
         termsAgreement: {
           label: "Agree to Terms and Services",
-          value: "",
+          value: false,
+          type: "checkbox",
           validations: [
             {
               message: "Agreement is a required field",
@@ -69,6 +77,7 @@ export default defineComponent({
         },
       } as any,
       steps: [
+        [],
         ["firstName", "lastName", "gitHub"],
         ["email", "termsAgreement"],
       ],
@@ -99,8 +108,6 @@ export default defineComponent({
     },
     nextStep() {
       this.validate();
-      console.log(this.isInvalid)
-      console.log(this.invalids)
       if (this.isInvalid) return;
       this.currentStep++;
     },
@@ -127,57 +134,71 @@ export default defineComponent({
       });
     },
   },
-  components: { TextInput },
+  components: { InputText, ButtonPrimary, InputCheckbox, StepsIndicator },
 });
 </script>
 
 <template>
-  <div>
-    <h1>Checkout</h1>
-    <p>Welcome to simple checkout. Please, fill out the form with your data.</p>
+  <section class="form-wrapper">
+    <div class="form-body">
+      <div v-if="!submitted">
+        <form @submit.prevent="">
+          <StepsIndicator
+            :total-steps="totalSteps"
+            :current-step="currentStep"
+          />
 
-    <div v-if="!submitted">
-      <form @submit.prevent="">
-        <div>
-          <div
-            v-for="step in totalSteps"
-            :key="step"
-            style="width: 4px; height: 3px; background-color: red"
-            :class="{ bg: step - 1 <= currentStep }"
-          ></div>
-        </div>
+          <div v-if="isFirstStep" class="welcome-info">
+            <h1>Checkout</h1>
+            <p>Welcome to simple checkout!</p>
+            <p>Please, fill out the form with your data.</p>
+          </div>
 
-        <div v-for="(fieldKeys, step) in steps" :key="step">
-          <div v-if="currentStep === step">
-            <div v-for="field in fieldKeys" :key="field">
-              <div>
-                <TextInput
-                  :label="fields[field].label"
-                  :name="field"
-                  v-model="fields[field].value"
-                  :is-invalid="!!invalids[field]"
-                  :invalid-message="invalids[field]"
-                  @validate="() => validateField(field)"
-                />
+          <div v-for="(fieldKeys, step) in steps" :key="step">
+            <div v-if="currentStep === step">
+              <div v-for="field in fieldKeys" :key="field">
+                <div>
+                  <InputText
+                    v-if="fields[field].type === 'text'"
+                    :label="fields[field].label"
+                    :name="field"
+                    v-model="fields[field].value"
+                    :is-invalid="!!invalids[field]"
+                    :invalid-message="invalids[field]"
+                    @validate="() => validateField(field)"
+                  />
+                  <InputCheckbox
+                    v-if="fields[field].type === 'checkbox'"
+                    :label="fields[field].label"
+                    :name="field"
+                    v-model="fields[field].value"
+                    :is-invalid="!!invalids[field]"
+                    :invalid-message="invalids[field]"
+                    @validate="() => validateField(field)"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </form>
+      </div>
 
-        <footer>
-          <button v-if="!isFirstStep" @click.prevent="previousStep">
-            Previous
-          </button>
-          <button v-if="!isLastStep" @click="nextStep">Next</button>
-          <button v-if="isLastStep" @click.prevent="submit">Submit</button>
-        </footer>
-      </form>
+      <div v-else>
+        <h3>Hi {{ fields.firstName.value }}, thanks!</h3>
+      </div>
     </div>
 
-    <div v-else>
-      <h3>Hi {{ fields.firstName.value }}, thanks!</h3>
-    </div>
-  </div>
+    <footer class="form-footer">
+      <ButtonPrimary v-if="!isFirstStep" @on-click="previousStep" text="Back" />
+      <ButtonPrimary
+        v-if="!isLastStep"
+        @on-click="nextStep"
+        text="Next"
+        class="form-footer__next-btn"
+      />
+      <ButtonPrimary v-if="isLastStep" @on-click="submit" text="Submit" />
+    </footer>
+  </section>
 
   <!-- <header>
     <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
@@ -195,109 +216,35 @@ export default defineComponent({
   <!-- <RouterView /> -->
 </template>
 
-<style>
-@import "@/assets/base.css";
+<style lang="scss">
+@import "@/assets/base.scss";
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
+.form-wrapper {
+  width: 720px;
+  padding: 40px;
+  height: calc(100vh - 160px);
+  border: 1px solid var(--gray);
+  border-radius: var(--border-radius);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.bg {
-  background-color: aqua !important;
-}
-
-/* #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-
-  font-weight: normal;
-}
-
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
+.welcome-info {
   text-align: center;
-  margin-top: 2rem;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+
+  &__next-btn {
+    margin-left: auto;
+  }
 }
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
-
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-} */
 </style>
