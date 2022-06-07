@@ -1,6 +1,4 @@
-import AppVue from "@/App.vue";
 import FormViewVue from "@/views/FormView.vue";
-import SuccessViewVue from "@/views/SuccessView.vue";
 import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
@@ -15,23 +13,6 @@ const router = createRouter({
       name: "form",
       component: FormViewVue,
     },
-    // {
-    //   // path: "/form/:stepId?",
-    //   // redirect: "/form",
-    //   name: "form",
-    //   // props: true,
-    //   component: FormViewVue,
-    // },
-    // {
-    //   path: "/form",
-    //   name: "form",
-    //   component: FormViewVue,
-    // },
-    // {
-    //   path: "/success",
-    //   name: "success",
-    //   component: SuccessViewVue,
-    // },
   ],
 });
 

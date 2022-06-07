@@ -1,20 +1,20 @@
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
   props: {
     label: String,
     name: String,
-    modelValue: Boolean,
+    modelValue: Boolean as PropType<unknown>,
     isInvalid: Boolean,
   },
   emits: ["update:modelValue", "validate"],
   computed: {
     value: {
       get() {
-        return this.modelValue;
+        return this.modelValue as boolean;
       },
-      set(value: string) {
+      set(value: boolean) {
         this.$emit("update:modelValue", value);
         this.$emit("validate");
       },

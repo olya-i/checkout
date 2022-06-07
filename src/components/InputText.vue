@@ -1,11 +1,11 @@
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
   props: {
     label: String,
     name: String,
-    modelValue: String,
+    modelValue: String as PropType<unknown>,
     isInvalid: Boolean,
     invalidMessage: String,
   },

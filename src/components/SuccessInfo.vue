@@ -1,11 +1,12 @@
 <script lang="ts">
-import { defineComponent } from "vue";
+import type { IFormField, IGitHubData } from "@/types/interfaces";
+import { defineComponent, type PropType } from "vue";
 import IconCheck from "../components/icons/IconCheck.vue";
 
 export default defineComponent({
   props: {
-    fields: Object,
-    gitHubData: Object,
+    fields: Object as PropType<{ [key: string]: IFormField }>,
+    gitHubData: Object as PropType<IGitHubData>,
     isServerError: Boolean,
   },
   components: { IconCheck },
@@ -16,12 +17,14 @@ export default defineComponent({
   <IconCheck class="icon" />
   <h1>Success!</h1>
   <div v-if="isServerError">
-    <p>User <i>{{ fields.gitHub.value }}</i> is not found in GitHub</p>
+    <p>
+      User <i>{{ fields && fields.gitHub.value }}</i> is not found in GitHub
+    </p>
   </div>
   <img
     v-else
     class="user-img"
-    v-bind:src="gitHubData.avatar_url"
+    v-bind:src="gitHubData && gitHubData.avatar_url"
     width="180"
     height="180"
     alt="User Avatar form GitHub"

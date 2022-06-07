@@ -1,14 +1,19 @@
 <script lang="ts">
-
 import { defineComponent } from "vue";
 import InputText from "./../components/InputText.vue";
-import { validateEmail } from "./../helpers/validation";
 import ButtonPrimary from "./../components/ButtonPrimary.vue";
 import InputCheckbox from "./../components/InputCheckbox.vue";
 import StepsIndicator from "./../components/StepsIndicator.vue";
 import { fetchGitHubData } from "./../services/GitHubService";
-import SuccessView from "./../views/SuccessView.vue";
 import router from "./../router";
+import { formFields } from "@/constants/fields";
+import type {
+  IFormField,
+  IFormFieldValidator,
+  IGitHubData,
+} from "@/types/interfaces";
+import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
+import SuccessInfo from "../components/SuccessInfo.vue";
 
 export default defineComponent({
   data() {
@@ -16,72 +21,13 @@ export default defineComponent({
       currentStep: 0,
       submitted: false,
       gitHubUserData: null,
-      invalids: {} as any,
+      invalids: {} as { [key: string]: string },
       isLoading: false,
-      gitHubData: {} as any,
+      gitHubData: {} as IGitHubData,
       isServerError: false,
-      fields: {
-        firstName: {
-          label: "First name*",
-          value: "",
-          type: "text",
-          validations: [
-            {
-              message: "FirstName is a required field",
-              test: (value: string) => value.length,
-            },
-          ],
-        },
-        lastName: {
-          label: "Last name*",
-          value: "",
-          type: "text",
-          validations: [
-            {
-              message: "LastName is a required field",
-              test: (value: string) => value.length,
-            },
-          ],
-        },
-        gitHub: {
-          label: "GitHub username*",
-          value: "",
-          type: "text",
-          validations: [
-            {
-              message: "GitHub is a required field",
-              test: (value: string) => value.length,
-            },
-          ],
-        },
-        email: {
-          label: "Email*",
-          value: "",
-          type: "text",
-          validations: [
-            {
-              message: "Email address not valid",
-              test: (value: string) => validateEmail(value),
-            },
-            {
-              message: "Email is required",
-              test: (value: string) => value.length,
-            },
-          ],
-        },
-        termsAgreement: {
-          label: "Agree to Terms and Services",
-          value: false,
-          type: "checkbox",
-          private: true,
-          validations: [
-            {
-              message: "Agreement is a required field",
-              test: (value: boolean) => value === true,
-            },
-          ],
-        },
-      } as any,
+      fields: formFields as {
+        [key: string]: IFormField;
+      },
       steps: [
         [],
         ["firstName", "lastName", "gitHub"],
@@ -108,33 +54,35 @@ export default defineComponent({
     isInvalidCurrentStep(): boolean {
       let isInvalid = false;
       const steps = this.isLastStep ? this.steps.flat() : this.currentFields;
-      steps.forEach((key) => {
-        this.fields[key].validations.forEach((validation: any) => {
-          if (!validation.test(this.fields[key].value)) {
-            isInvalid = true;
+      steps.forEach((key: string) => {
+        this.fields[key].validations.forEach(
+          (validator: IFormFieldValidator) => {
+            if (!validator.test(this.fields[key].value)) {
+              isInvalid = true;
+            }
           }
-        });
+        );
       });
       return isInvalid;
     },
   },
   mounted() {
-    router.push({
-      name: "form",
-      query: { step: String(this.currentStep + 1) },
-    });
+    this.goToNextStep();
   },
-  beforeRouteUpdate(to, from, next) {
-    if (+to.query.step !== this.currentStep + 1) {
-      if (+from.query.step < +to.query.step) {
+  beforeRouteUpdate(
+    to: RouteLocationNormalized,
+    from: RouteLocationNormalized,
+    next: NavigationGuardNext
+  ) {
+    if (Number(to.query.step) !== this.currentStep + 1) {
+      if (Number(from.query.step) < Number(to.query.step)) {
         this.currentStep++;
-      } else if (+from.query.step > +to.query.step) {
+      } else if (Number(from.query.step) > Number(to.query.step)) {
         this.currentStep--;
       }
     }
     if (from.query.step === "success") {
       this.submitted = false;
-      console.log(this.submitted);
     } else if (to.query.step === "success") {
       this.submitted = true;
     }
@@ -145,15 +93,15 @@ export default defineComponent({
     previousStep() {
       this.invalids = {};
       this.currentStep--;
-      router.push({
-        name: "form",
-        query: { step: String(this.currentStep + 1) },
-      });
+      this.goToNextStep();
     },
     nextStep() {
       this.validate();
       if (this.isInvalid) return;
       this.currentStep++;
+      this.goToNextStep();
+    },
+    goToNextStep() {
       router.push({
         name: "form",
         query: { step: String(this.currentStep + 1) },
@@ -172,16 +120,16 @@ export default defineComponent({
     fetchGitHubUserData() {
       this.isLoading = true;
       this.isServerError = false;
-      fetchGitHubData(this.fields.gitHub.value)
-        .then((res) => (this.gitHubData = res))
-        .catch((err) => (this.isServerError = true))
+      fetchGitHubData(String(this.fields.gitHub.value))
+        .then((response: IGitHubData) => (this.gitHubData = response))
+        .catch(() => (this.isServerError = true))
         .finally(() => {
           this.isLoading = false;
         });
     },
     validate() {
       this.invalids = {};
-      this.currentFields.forEach((key) => {
+      this.currentFields.forEach((key: string) => {
         this.validateField(key);
       });
     },
@@ -189,9 +137,9 @@ export default defineComponent({
       this.invalids[fieldKey] = "";
       const field = this.fields[fieldKey];
 
-      field.validations.forEach((validation: any) => {
-        if (!validation.test(field.value)) {
-          this.invalids[fieldKey] = validation.message;
+      field.validations.forEach((validator: IFormFieldValidator) => {
+        if (!validator.test(field.value)) {
+          this.invalids[fieldKey] = validator.message;
         }
       });
     },
@@ -201,7 +149,7 @@ export default defineComponent({
     ButtonPrimary,
     InputCheckbox,
     StepsIndicator,
-    SuccessView,
+    SuccessInfo,
   },
 });
 </script>
@@ -257,7 +205,7 @@ export default defineComponent({
       <div v-else>
         <div class="welcome-info">
           <div v-if="isLoading"><h3>Loading...</h3></div>
-          <SuccessView
+          <SuccessInfo
             v-else
             :fields="fields"
             :git-hub-data="gitHubData"
@@ -277,7 +225,7 @@ export default defineComponent({
         :disabled="isInvalidCurrentStep"
       />
       <ButtonPrimary
-        v-if="isLastStep"
+        v-else
         @on-click="submit"
         :disabled="isInvalidCurrentStep"
         text="Submit"
