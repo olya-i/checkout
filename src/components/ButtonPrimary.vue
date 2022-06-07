@@ -4,13 +4,16 @@ import { defineComponent } from "vue";
 export default defineComponent({
   props: {
     text: String,
+    disabled: Boolean,
   },
   emits: ["onClick"],
 });
 </script>
 
 <template>
-  <button class="button" @click="$emit('onClick')">{{ text }}</button>
+  <button class="button" @click="$emit('onClick')" :disabled="disabled">
+    {{ text }}
+  </button>
 </template>
 
 <style lang="scss" scoped>
@@ -32,6 +35,12 @@ export default defineComponent({
   &:focus {
     outline: 2px solid var(--blue--dark);
     border-color: var(--blue--dark);
+  }
+
+  &:disabled {
+    background-color: var(--gray--dark);
+    border-color: var(--gray--dark);
+    cursor: not-allowed;
   }
 }
 </style>

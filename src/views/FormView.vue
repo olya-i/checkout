@@ -1,18 +1,14 @@
-<template>
-  <router-view></router-view>
-</template>
-<!-- <script lang="ts">
-// import { RouterLink, RouterView } from 'vue-router'
+<script lang="ts">
 
 import { defineComponent } from "vue";
-import InputText from "./components/InputText.vue";
-import { validateEmail } from "./helpers/validation";
-import ButtonPrimary from "./components/ButtonPrimary.vue";
-import InputCheckbox from "./components/InputCheckbox.vue";
-import StepsIndicator from "./components/StepsIndicator.vue";
-import { fetchGitHubData } from "./services/GitHubService";
-import SuccessView from "./views/SuccessView.vue";
-import router from "./router";
+import InputText from "./../components/InputText.vue";
+import { validateEmail } from "./../helpers/validation";
+import ButtonPrimary from "./../components/ButtonPrimary.vue";
+import InputCheckbox from "./../components/InputCheckbox.vue";
+import StepsIndicator from "./../components/StepsIndicator.vue";
+import { fetchGitHubData } from "./../services/GitHubService";
+import SuccessView from "./../views/SuccessView.vue";
+import router from "./../router";
 
 export default defineComponent({
   data() {
@@ -22,10 +18,11 @@ export default defineComponent({
       gitHubUserData: null,
       invalids: {} as any,
       isLoading: false,
-      gitHubData: {},
+      gitHubData: {} as any,
+      isServerError: false,
       fields: {
         firstName: {
-          label: "First name",
+          label: "First name*",
           value: "",
           type: "text",
           validations: [
@@ -36,7 +33,7 @@ export default defineComponent({
           ],
         },
         lastName: {
-          label: "Last name",
+          label: "Last name*",
           value: "",
           type: "text",
           validations: [
@@ -47,7 +44,7 @@ export default defineComponent({
           ],
         },
         gitHub: {
-          label: "GitHub username",
+          label: "GitHub username*",
           value: "",
           type: "text",
           validations: [
@@ -58,7 +55,7 @@ export default defineComponent({
           ],
         },
         email: {
-          label: "Email",
+          label: "Email*",
           value: "",
           type: "text",
           validations: [
@@ -108,38 +105,79 @@ export default defineComponent({
     currentFields(): string[] {
       return this.steps[this.currentStep];
     },
+    isInvalidCurrentStep(): boolean {
+      let isInvalid = false;
+      const steps = this.isLastStep ? this.steps.flat() : this.currentFields;
+      steps.forEach((key) => {
+        this.fields[key].validations.forEach((validation: any) => {
+          if (!validation.test(this.fields[key].value)) {
+            isInvalid = true;
+          }
+        });
+      });
+      return isInvalid;
+    },
+  },
+  mounted() {
+    router.push({
+      name: "form",
+      query: { step: String(this.currentStep + 1) },
+    });
+  },
+  beforeRouteUpdate(to, from, next) {
+    if (+to.query.step !== this.currentStep + 1) {
+      if (+from.query.step < +to.query.step) {
+        this.currentStep++;
+      } else if (+from.query.step > +to.query.step) {
+        this.currentStep--;
+      }
+    }
+    if (from.query.step === "success") {
+      this.submitted = false;
+      console.log(this.submitted);
+    } else if (to.query.step === "success") {
+      this.submitted = true;
+    }
+    next();
   },
 
   methods: {
     previousStep() {
       this.invalids = {};
       this.currentStep--;
+      router.push({
+        name: "form",
+        query: { step: String(this.currentStep + 1) },
+      });
     },
     nextStep() {
       this.validate();
       if (this.isInvalid) return;
       this.currentStep++;
-      // router.push({path: '/form', hash: '#' + String(this.currentStep)})
-
-      // router.push({ path: '/form', hash: '#' + String(this.currentStep) })
-      // if (router) {
-      //   console.log(router)
-      //   // router.push({ path: '/form', hash: '#' + String(this.currentStep) })
-      // }
+      router.push({
+        name: "form",
+        query: { step: String(this.currentStep + 1) },
+      });
     },
     submit() {
       this.validate();
       if (this.isInvalid) return;
       this.submitted = true;
       this.fetchGitHubUserData();
-      console.log("doing submit", this.fields);
+      router.push({
+        name: "form",
+        query: { step: "success" },
+      });
     },
     fetchGitHubUserData() {
       this.isLoading = true;
+      this.isServerError = false;
       fetchGitHubData(this.fields.gitHub.value)
         .then((res) => (this.gitHubData = res))
-        .catch((err) => console.log(err))
-        .finally(() => (this.isLoading = false));
+        .catch((err) => (this.isServerError = true))
+        .finally(() => {
+          this.isLoading = false;
+        });
     },
     validate() {
       this.invalids = {};
@@ -164,7 +202,7 @@ export default defineComponent({
     InputCheckbox,
     StepsIndicator,
     SuccessView,
-},
+  },
 });
 </script>
 
@@ -178,36 +216,40 @@ export default defineComponent({
             :current-step="currentStep"
           />
 
-          <div v-if="isFirstStep" class="welcome-info">
-            <h1>Checkout</h1>
-            <p>Welcome to simple checkout!</p>
-            <p>Please, fill out the form with your data.</p>
-          </div>
+          <Transition name="slide-fade">
+            <div v-if="isFirstStep" class="welcome-info">
+              <h1>Checkout</h1>
+              <p>Welcome to simple checkout!</p>
+              <p>Please, fill out the form with your data.</p>
+            </div>
+          </Transition>
 
           <div v-for="(fieldKeys, step) in steps" :key="step">
-            <div v-if="currentStep === step">
-              <div v-for="field in fieldKeys" :key="field">
-                <div>
-                  <InputText
-                    v-if="fields[field].type === 'text'"
-                    :label="fields[field].label"
-                    :name="field"
-                    v-model="fields[field].value"
-                    :is-invalid="!!invalids[field]"
-                    :invalid-message="invalids[field]"
-                    @validate="() => validateField(field)"
-                  />
-                  <InputCheckbox
-                    v-if="fields[field].type === 'checkbox'"
-                    :label="fields[field].label"
-                    :name="field"
-                    v-model="fields[field].value"
-                    :is-invalid="!!invalids[field]"
-                    @validate="() => validateField(field)"
-                  />
+            <Transition name="slide-fade">
+              <div v-if="currentStep === step">
+                <div v-for="field in fieldKeys" :key="field">
+                  <div>
+                    <InputText
+                      v-if="fields[field].type === 'text'"
+                      :label="fields[field].label"
+                      :name="field"
+                      v-model="fields[field].value"
+                      :is-invalid="!!invalids[field]"
+                      :invalid-message="invalids[field]"
+                      @validate="() => validateField(field)"
+                    />
+                    <InputCheckbox
+                      v-if="fields[field].type === 'checkbox'"
+                      :label="fields[field].label"
+                      :name="field"
+                      v-model="fields[field].value"
+                      :is-invalid="!!invalids[field]"
+                      @validate="() => validateField(field)"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </Transition>
           </div>
         </form>
       </div>
@@ -215,7 +257,12 @@ export default defineComponent({
       <div v-else>
         <div class="welcome-info">
           <div v-if="isLoading"><h3>Loading...</h3></div>
-          <SuccessView v-else :fields="fields" :git-hub-data="gitHubData" />
+          <SuccessView
+            v-else
+            :fields="fields"
+            :git-hub-data="gitHubData"
+            :is-server-error="isServerError"
+          />
         </div>
       </div>
     </div>
@@ -227,8 +274,14 @@ export default defineComponent({
         @on-click="nextStep"
         text="Next"
         class="form-footer__next-btn"
+        :disabled="isInvalidCurrentStep"
       />
-      <ButtonPrimary v-if="isLastStep" @on-click="submit" text="Submit" />
+      <ButtonPrimary
+        v-if="isLastStep"
+        @on-click="submit"
+        :disabled="isInvalidCurrentStep"
+        text="Submit"
+      />
     </footer>
   </section>
 </template>
@@ -252,6 +305,31 @@ export default defineComponent({
   justify-content: space-between;
 }
 
+.slide-fade-enter-active {
+  height: 0;
+  transition: all 0.3s ease-in-out;
+  transition-delay: 0.1s;
+}
+
+.slide-fade-leave-active {
+  height: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.slide-fade-enter-from {
+  transform: translateX(200px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateX(-200px);
+  opacity: 0;
+}
+
+.form-body {
+  height: 412px;
+}
+
 .welcome-info {
   text-align: center;
 }
@@ -264,5 +342,4 @@ export default defineComponent({
     margin-left: auto;
   }
 }
-</style> -->
-
+</style>

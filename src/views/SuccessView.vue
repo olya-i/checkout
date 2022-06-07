@@ -6,6 +6,7 @@ export default defineComponent({
   props: {
     fields: Object,
     gitHubData: Object,
+    isServerError: Boolean,
   },
   components: { IconCheck },
 });
@@ -14,7 +15,11 @@ export default defineComponent({
 <template>
   <IconCheck class="icon" />
   <h1>Success!</h1>
+  <div v-if="isServerError">
+    <p>User <i>{{ fields.gitHub.value }}</i> is not found in GitHub</p>
+  </div>
   <img
+    v-else
     class="user-img"
     v-bind:src="gitHubData.avatar_url"
     width="180"
