@@ -61,11 +61,20 @@ export default defineComponent({
 
   &__item {
     display: inline-flex;
+
+    @media(max-width: 360px) {
+      display: block;
+      margin-bottom: 12px;
+    }
   }
 
   &__item-heading {
     font-weight: bold;
     margin-right: 8px;
+
+    @media(max-width: 360px) {
+      margin-right: 0;
+    }
   }
 }
 </style>

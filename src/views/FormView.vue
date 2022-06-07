@@ -251,6 +251,15 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
+  @media(max-width: 900px) {
+    height: calc(100vh - 40px);
+  }
+
+  @media(max-width: 760px) {
+    width: calc(100vw - 20px);
+    height: calc(100vh - 60px);
+  }
 }
 
 .slide-fade-enter-active {

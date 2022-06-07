@@ -13,9 +13,6 @@
   ],
   "compilerOptions": {
     "isolatedModules": false,
-    "strict": true,
-    // "noImplicitAny": true,
-    // "noImplicitThis": true,
-    // "noImplicitReturns": true
-  }
+    "strict": true
+  },
 }

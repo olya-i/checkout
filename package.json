@@ -22,6 +22,7 @@
     "@types/jsdom": "^16.2.14",
     "@types/node": "^16.11.38",
     "@vitejs/plugin-vue": "^2.3.3",
+    "@vue/babel-preset-app": "^5.0.4",
     "@vue/eslint-config-prettier": "^7.0.0",
     "@vue/eslint-config-typescript": "^10.0.0",
     "@vue/test-utils": "^2.0.0",
@@ -39,5 +40,9 @@
     "vite": "^2.9.9",
     "vitest": "^0.13.0",
     "vue-tsc": "^0.35.2"
-  }
+  },
+  "browserslist": [
+    "defaults",
+    "last 2 versions"
+  ]
 }
