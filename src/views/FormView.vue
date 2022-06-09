@@ -5,7 +5,6 @@ import ButtonPrimary from "./../components/ButtonPrimary.vue";
 import InputCheckbox from "./../components/InputCheckbox.vue";
 import StepsIndicator from "./../components/StepsIndicator.vue";
 import { fetchGitHubData } from "./../services/GitHubService";
-import router from "./../router";
 import { formFields } from "@/constants/fields";
 import type {
   IFormField,
@@ -13,7 +12,7 @@ import type {
   IGitHubData,
 } from "@/types/interfaces";
 import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
-import SuccessInfo from "../components/SuccessInfo.vue";
+import FinalInfo from "../components/FinalInfo.vue";
 
 export default defineComponent({
   data() {
@@ -81,9 +80,9 @@ export default defineComponent({
         this.currentStep--;
       }
     }
-    if (from.query.step === "success") {
+    if (from.query.step === "final") {
       this.submitted = false;
-    } else if (to.query.step === "success") {
+    } else if (to.query.step === "final") {
       this.submitted = true;
     }
     next();
@@ -102,19 +101,23 @@ export default defineComponent({
       this.goToNextStep();
     },
     goToNextStep() {
-      router.push({
+      this.$router.push({
         name: "form",
         query: { step: String(this.currentStep + 1) },
       });
+    },
+    goToStart() {
+      this.currentStep = 1;
+      this.goToNextStep();
     },
     submit() {
       this.validate();
       if (this.isInvalid) return;
       this.submitted = true;
       this.fetchGitHubUserData();
-      router.push({
+      this.$router.push({
         name: "form",
-        query: { step: "success" },
+        query: { step: "final" },
       });
     },
     fetchGitHubUserData() {
@@ -149,14 +152,14 @@ export default defineComponent({
     ButtonPrimary,
     InputCheckbox,
     StepsIndicator,
-    SuccessInfo,
+    FinalInfo,
   },
 });
 </script>
 
 <template>
   <section class="form-wrapper">
-    <div class="form-body">
+    <main class="form-body">
       <div v-if="!submitted">
         <form @submit.prevent="">
           <StepsIndicator
@@ -165,14 +168,14 @@ export default defineComponent({
           />
 
           <Transition name="slide-fade">
-            <div v-if="isFirstStep" class="welcome-info">
+            <section v-if="isFirstStep" class="welcome-info">
               <h1>Checkout</h1>
               <p>Welcome to simple checkout!</p>
               <p>Please, fill out the form with your data.</p>
-            </div>
+            </section>
           </Transition>
 
-          <div v-for="(fieldKeys, step) in steps" :key="step">
+          <section v-for="(fieldKeys, step) in steps" :key="step">
             <Transition name="slide-fade">
               <div v-if="currentStep === step">
                 <div v-for="field in fieldKeys" :key="field">
@@ -198,22 +201,28 @@ export default defineComponent({
                 </div>
               </div>
             </Transition>
-          </div>
+          </section>
         </form>
       </div>
 
       <div v-else>
         <div class="welcome-info">
           <div v-if="isLoading"><h3>Loading...</h3></div>
-          <SuccessInfo
-            v-else
-            :fields="fields"
-            :git-hub-data="gitHubData"
-            :is-server-error="isServerError"
-          />
+          <template v-else>
+            <FinalInfo
+              :fields="fields"
+              :git-hub-data="gitHubData"
+              :is-server-error="isServerError"
+            />
+            <ButtonPrimary
+              v-if="isServerError"
+              @on-click="goToStart"
+              text="Check data"
+            />
+          </template>
         </div>
       </div>
-    </div>
+    </main>
 
     <footer v-if="!submitted" class="form-footer">
       <ButtonPrimary v-if="!isFirstStep" @on-click="previousStep" text="Back" />
@@ -235,7 +244,7 @@ export default defineComponent({
 </template>
 
 <style lang="scss">
-@import "@/assets/base.scss";
+@import "./../assets/base.scss";
 
 .form-wrapper {
   width: 720px;
@@ -252,11 +261,11 @@ export default defineComponent({
   flex-direction: column;
   justify-content: space-between;
 
-  @media(max-width: 900px) {
+  @media (max-width: 900px) {
     height: calc(100vh - 40px);
   }
 
-  @media(max-width: 760px) {
+  @media (max-width: 760px) {
     width: calc(100vw - 20px);
     height: calc(100vh - 60px);
   }

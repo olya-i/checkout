@@ -1,4 +1,9 @@
-import { validateEmail, validateString } from "@/helpers/validation";
+import {
+  validateEmail,
+  validateGithubUsername,
+  validateName,
+  validateString,
+} from "@/helpers/validation";
 import type { IFormField } from "@/types/interfaces";
 
 export const formFields: { [key: string]: IFormField } = {
@@ -8,8 +13,12 @@ export const formFields: { [key: string]: IFormField } = {
     type: "text",
     validations: [
       {
+        message: "FirstName should be valid",
+        test: (value: string | boolean) => validateName(String(value)),
+      },
+      {
         message: "FirstName is a required field",
-        test: (value: string | boolean) => validateString(value),
+        test: (value: string | boolean) => validateString(String(value)),
       },
     ],
   },
@@ -19,8 +28,12 @@ export const formFields: { [key: string]: IFormField } = {
     type: "text",
     validations: [
       {
+        message: "LastName should be valid",
+        test: (value: string | boolean) => validateName(String(value)),
+      },
+      {
         message: "LastName is a required field",
-        test: (value: string | boolean) => validateString(value),
+        test: (value: string | boolean) => validateString(String(value)),
       },
     ],
   },
@@ -30,8 +43,13 @@ export const formFields: { [key: string]: IFormField } = {
     type: "text",
     validations: [
       {
-        message: "GitHub is a required field",
-        test: (value: string | boolean) => validateString(value),
+        message: "GitHUb username should be valid",
+        test: (value: string | boolean) =>
+          validateGithubUsername(String(value)),
+      },
+      {
+        message: "GitHub username is a required field",
+        test: (value: string | boolean) => validateString(String(value)),
       },
     ],
   },
@@ -47,7 +65,7 @@ export const formFields: { [key: string]: IFormField } = {
       },
       {
         message: "Email is required",
-        test: (value: string | boolean) => validateString(value),
+        test: (value: string | boolean) => validateString(String(value)),
       },
     ],
   },

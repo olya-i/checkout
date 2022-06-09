@@ -6,13 +6,12 @@
     },
     {
       "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.vitest.json"
     }
   ],
   "compilerOptions": {
+    "lib": ["es2019", "dom"],
     "isolatedModules": false,
-    "strict": true
+    "strict": true,
+    "types": ["node"]
   },
 }

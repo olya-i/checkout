@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Mounted InputText renders correctly 1`] = `
+<div
+  class="input-wrapper"
+>
+  <label
+    class="label"
+  >
+    Input label 
+    <input
+      class="input"
+      name="input"
+      placeholder="Enter your Input label"
+      type="text"
+    />
+  </label>
+  <!--v-if-->
+</div>
+`;

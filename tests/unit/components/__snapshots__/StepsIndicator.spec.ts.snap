@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Mounted StepsIndicator renders correctly 1`] = `
+<div
+  class="steps-wrapper"
+>
+  
+  <div
+    class="steps-wrapper__item steps-wrapper__item--filled"
+  />
+  <div
+    class="steps-wrapper__item steps-wrapper__item--filled"
+  />
+  <div
+    class="steps-wrapper__item steps-wrapper__item--filled"
+  />
+  
+</div>
+`;

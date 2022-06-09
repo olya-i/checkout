@@ -10,29 +10,38 @@ export default defineComponent({
     isServerError: Boolean,
   },
   components: { IconCheck },
+  methods: {
+    fieldName(label: string): string {
+      return label && label.replace("*", "");
+    },
+  },
 });
 </script>
 
 <template>
-  <IconCheck class="icon" />
-  <h1>Success!</h1>
-  <div v-if="isServerError">
+  <template v-if="!isServerError">
+    <IconCheck class="icon" />
+    <h1>Success!</h1>
+    <figure>
+      <img
+        class="user-img"
+        v-bind:src="gitHubData && gitHubData.avatar_url"
+        width="180"
+        height="180"
+        alt="User Avatar form GitHub"
+      />
+    </figure>
+  </template>
+  <template v-else>
+    <p class="error-info">Something went wrong, please check your data</p>
     <p>
       User <i>{{ fields && fields.gitHub.value }}</i> is not found in GitHub
     </p>
-  </div>
-  <img
-    v-else
-    class="user-img"
-    v-bind:src="gitHubData && gitHubData.avatar_url"
-    width="180"
-    height="180"
-    alt="User Avatar form GitHub"
-  />
+  </template>
   <div class="user-data">
     <div v-for="field in fields" :key="field.label">
       <div v-if="!field.private" class="user-data__item">
-        <p class="user-data__item-heading">{{ field.label }}:</p>
+        <p class="user-data__item-heading">{{ fieldName(field.label) }}:</p>
         <p>{{ field.value }}</p>
       </div>
     </div>
@@ -62,7 +71,7 @@ export default defineComponent({
   &__item {
     display: inline-flex;
 
-    @media(max-width: 360px) {
+    @media (max-width: 360px) {
       display: block;
       margin-bottom: 12px;
     }
@@ -72,9 +81,14 @@ export default defineComponent({
     font-weight: bold;
     margin-right: 8px;
 
-    @media(max-width: 360px) {
+    @media (max-width: 360px) {
       margin-right: 0;
     }
   }
+}
+
+.error-info {
+  font-weight: bold;
+  margin-bottom: 8px;
 }
 </style>

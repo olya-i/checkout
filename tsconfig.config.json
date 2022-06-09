@@ -1,8 +1,9 @@
 {
   "extends": "@vue/tsconfig/tsconfig.node.json",
-  "include": ["vite.config.*", "vitest.config.*", "cypress.config.*"],
+  "include": ["vite.config.*", "tests/**/*.ts"],
   "compilerOptions": {
+    "lib": ["es2019", "dom"],
     "composite": true,
-    "types": ["node"]
+    "types": ["node", "jest", "@types/jest", "@types/testing-library__jest-dom"]
   }
 }

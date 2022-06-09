@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Mounted InputCheckbox renders correctly 1`] = `
+<div
+  class="checkbox-wrapper"
+>
+  <label
+    class="label"
+  >
+    <input
+      name="checkbox"
+      type="checkbox"
+    />
+     Checkbox label
+  </label>
+</div>
+`;
